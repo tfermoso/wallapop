@@ -17,8 +17,15 @@ class PurchasesController extends AppController
      */
     public function index()
     {
+        $buyerId = $this->request->getAttribute('identity')->getIdentifier();
+
         $query = $this->Purchases->find()
-            ->contain(['Products', 'Buyers']);
+            ->where([
+                'Purchases.buyer_id' => $buyerId,
+            ])
+            ->contain(['Products'])
+            ->orderDesc('Purchases.created');
+
         $purchases = $this->paginate($query);
 
         $this->set(compact('purchases'));
@@ -39,7 +46,7 @@ class PurchasesController extends AppController
 
         $products = $this->fetchTable('Products')
             ->find()
-            ->where(['Products.id IN' => $this->fetchTable('Purchases')->find()->select(['product_id'])->where(['Purchases.buyer_id' => $buyerId])]);   
+            ->where(['Products.id IN' => $this->fetchTable('Purchases')->find()->select(['product_id'])->where(['Purchases.buyer_id' => $buyerId])]);
         $this->set(compact('purchases', 'products'));
 
 
