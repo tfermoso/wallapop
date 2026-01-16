@@ -1,0 +1,83 @@
+/* ===============================
+   TIENDA – GRID DE PRODUCTOS
+   =============================== */
+
+.shop-title {
+    margin-bottom: 2rem;
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+/* Grid responsive tipo ecommerce */
+.shop-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+/* Card de producto */
+.shop-card {
+    border: 1px solid #e0e0e0;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.2s ease;
+}
+
+.shop-card:hover {
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+}
+
+/* Imagen del producto */
+.shop-image img {
+    width: 100%;
+    height: 220px;          /* 🔑 controla el tamaño */
+    object-fit: cover;     /* recorta sin deformar */
+    display: block;
+}
+
+/* Cuerpo de la card */
+.shop-body {
+    padding: 1rem;
+    flex-grow: 1;
+}
+
+.shop-product-title {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.shop-price {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #2e7d32;
+    margin-bottom: 0.5rem;
+}
+
+/* Descripción corta */
+.shop-description {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* Acciones */
+.shop-actions {
+    padding: 1rem;
+    text-align: center;
+    border-top: 1px solid #eee;
+}
+
+.btn-view {
+    display: inline-block;
+    padding: 0.6rem 1.2rem;
+    background: #1976d2;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 500;
+    border-radius: 4px;
+}
+
+.btn-view:hover {
+    background: #125aa0;
+}

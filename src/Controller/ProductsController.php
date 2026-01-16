@@ -45,18 +45,38 @@ class ProductsController extends AppController
     public function add()
     {
         $product = $this->Products->newEmptyEntity();
-        if ($this->request->is('post')) {
-            $product = $this->Products->patchEntity($product, $this->request->getData());
-            if ($this->Products->save($product)) {
-                $this->Flash->success(__('The product has been saved.'));
 
+        if ($this->request->is('post')) {
+            $data = $this->request->getData();
+
+            // 👤 Usuario logueado
+            $identity = $this->request->getAttribute('identity');
+            $data['user_id'] = $identity->getIdentifier(); // id del usuario
+
+            // 📸 Imagen
+            $image = $data['image'] ?? null;
+
+            if ($image && $image->getError() === UPLOAD_ERR_OK) {
+                $filename = time() . '_' . $image->getClientFilename();
+                $image->moveTo(WWW_ROOT . 'img' . DS . 'products' . DS . $filename);
+                $data['image'] = $filename;
+            } else {
+                unset($data['image']);
+            }
+
+            $product = $this->Products->patchEntity($product, $data);
+
+            if ($this->Products->save($product)) {
+                $this->Flash->success(__('Product created'));
                 return $this->redirect(['action' => 'index']);
             }
-            $this->Flash->error(__('The product could not be saved. Please, try again.'));
+
+            $this->Flash->error(__('Product could not be created'));
         }
-        $users = $this->Products->Users->find('list', limit: 200)->all();
-        $this->set(compact('product', 'users'));
+
+        $this->set(compact('product'));
     }
+
 
     /**
      * Edit method
