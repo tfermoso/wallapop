@@ -48,9 +48,11 @@ class PagesController extends AppController
         if (!$path) {
             return $this->redirect('/');
         }
+
         if (in_array('..', $path, true) || in_array('.', $path, true)) {
             throw new ForbiddenException();
         }
+
         $page = $subpage = null;
 
         if (!empty($path[0])) {
@@ -59,6 +61,31 @@ class PagesController extends AppController
         if (!empty($path[1])) {
             $subpage = $path[1];
         }
+
+        // 🔑 SOLO para la home
+        if ($page === 'home') {
+            $Products = $this->fetchTable('Products');
+
+            $identity = $this->request->getAttribute('identity');
+
+            if ($identity) {
+                // 👤 Logueado → todos MENOS los suyos
+                $products = $Products->find()
+                    ->where([
+                        'Products.user_id !=' => $identity->getIdentifier()
+                    ])
+                    ->contain(['Users'])
+                    ->orderDesc('Products.created');
+            } else {
+                // 👥 No logueado → todos
+                $products = $Products->find()
+                    ->contain(['Users'])
+                    ->orderDesc('Products.created');
+            }
+
+            $this->set(compact('products'));
+        }
+
         $this->set(compact('page', 'subpage'));
 
         try {
