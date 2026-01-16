@@ -33,7 +33,16 @@ class ProductsController extends AppController
      */
     public function view($id = null)
     {
-        $product = $this->Products->get($id, contain: ['Users', 'Purchases']);
+        $userId = $this->request->getAttribute('identity')->getIdentifier();
+
+        $product = $this->Products->find()
+            ->where([
+                'Products.id' => $id,
+                'Products.user_id' => $userId,
+            ])
+            ->contain(['Purchases'])
+            ->firstOrFail();
+
         $this->set(compact('product'));
     }
 
@@ -87,19 +96,46 @@ class ProductsController extends AppController
      */
     public function edit($id = null)
     {
-        $product = $this->Products->get($id, contain: []);
-        if ($this->request->is(['patch', 'post', 'put'])) {
-            $product = $this->Products->patchEntity($product, $this->request->getData());
-            if ($this->Products->save($product)) {
-                $this->Flash->success(__('The product has been saved.'));
+        $userId = $this->request->getAttribute('identity')->getIdentifier();
 
+        // 🔒 Cargar SOLO si es del usuario
+        $product = $this->Products->find()
+            ->where([
+                'Products.id' => $id,
+                'Products.user_id' => $userId,
+            ])
+            ->firstOrFail();
+
+        if ($this->request->is(['patch', 'post', 'put'])) {
+            $data = $this->request->getData();
+
+            // 🔒 Evitar cambio de propietario
+            unset($data['user_id']);
+
+            // 📸 Imagen (opcional)
+            $image = $data['image'] ?? null;
+
+            if ($image && $image->getError() === UPLOAD_ERR_OK) {
+                $filename = time() . '_' . $image->getClientFilename();
+                $image->moveTo(WWW_ROOT . 'img' . DS . 'products' . DS . $filename);
+                $data['image'] = $filename;
+            } else {
+                unset($data['image']); // mantiene la anterior
+            }
+
+            $product = $this->Products->patchEntity($product, $data);
+
+            if ($this->Products->save($product)) {
+                $this->Flash->success(__('The product has been updated.'));
                 return $this->redirect(['action' => 'index']);
             }
-            $this->Flash->error(__('The product could not be saved. Please, try again.'));
+
+            $this->Flash->error(__('The product could not be updated. Please, try again.'));
         }
-        $users = $this->Products->Users->find('list', limit: 200)->all();
-        $this->set(compact('product', 'users'));
+
+        $this->set(compact('product'));
     }
+
 
     /**
      * Delete method
@@ -108,16 +144,27 @@ class ProductsController extends AppController
      * @return \Cake\Http\Response|null Redirects to index.
      * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
      */
-    public function delete($id = null)
-    {
-        $this->request->allowMethod(['post', 'delete']);
-        $product = $this->Products->get($id);
-        if ($this->Products->delete($product)) {
-            $this->Flash->success(__('The product has been deleted.'));
-        } else {
-            $this->Flash->error(__('The product could not be deleted. Please, try again.'));
-        }
+public function delete($id = null)
+{
+    $this->request->allowMethod(['post', 'delete']);
 
-        return $this->redirect(['action' => 'index']);
+    $userId = $this->request->getAttribute('identity')->getIdentifier();
+
+    // 🔒 Solo si el producto es del usuario
+    $product = $this->Products->find()
+        ->where([
+            'Products.id' => $id,
+            'Products.user_id' => $userId,
+        ])
+        ->firstOrFail();
+
+    if ($this->Products->delete($product)) {
+        $this->Flash->success(__('The product has been deleted.'));
+    } else {
+        $this->Flash->error(__('The product could not be deleted. Please, try again.'));
     }
+
+    return $this->redirect(['action' => 'index']);
+}
+
 }

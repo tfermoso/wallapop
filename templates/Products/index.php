@@ -35,9 +35,18 @@
 
             <div class="shop-actions">
                 <?= $this->Html->link(
-                    'View product',
-                    ['action' => 'view', $product->id],
+                    'Edit product',
+                    ['action' => 'edit', $product->id],
                     ['class' => 'btn-view']
+                ) ?>
+                <!--enlace para borrar-->
+                <?= $this->Form->postLink(
+                    'Delete product',
+                    ['action' => 'delete', $product->id],
+                    [
+                        'confirm' => 'Are you sure you want to delete #' . $product->id . '?',
+                        'class' => 'btn-delete'
+                    ]
                 ) ?>
             </div>
 

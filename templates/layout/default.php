@@ -38,7 +38,7 @@ $cakeDescription = 'CakePHP: the rapid development php framework';
 <body>
     <nav class="top-nav">
         <div class="top-nav-title">
-            <a href="<?= $this->Url->build('/') ?>"><span>Cake</span>PHP</a>
+            <a href="<?= $this->Url->build('/') ?>"><span>Formacom</span>SHOP</a>
         </div>
         <div class="top-nav-links">
             <!-- Si estoy logeado email y enlace a logout, sino nada -->
