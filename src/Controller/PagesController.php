@@ -69,17 +69,20 @@ class PagesController extends AppController
             $identity = $this->request->getAttribute('identity');
 
             if ($identity) {
-                // 👤 Logueado → todos MENOS los suyos
+                // 👤 Logueado → todos MENOS los suyos que no estan comprados
                 $products = $Products->find()
                     ->where([
                         'Products.user_id !=' => $identity->getIdentifier()
                     ])
                     ->contain(['Users'])
+                    ->where(['Products.id NOT IN' => $this->fetchTable('Purchases')->find()->select(['product_id'])]) 
                     ->orderDesc('Products.created');
             } else {
-                // 👥 No logueado → todos
+                // 👥 No logueado → todos que no estan comprados
+
                 $products = $Products->find()
                     ->contain(['Users'])
+                    ->where(['Products.id NOT IN' => $this->fetchTable('Purchases')->find()->select(['product_id'])]) 
                     ->orderDesc('Products.created');
             }
 

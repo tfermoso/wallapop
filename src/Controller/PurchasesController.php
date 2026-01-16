@@ -33,6 +33,16 @@ class PurchasesController extends AppController
      */
     public function view($id = null)
     {
+        //Cargar los productos que he comprado
+        $identity = $this->request->getAttribute('identity');
+        $buyerId = $identity->getIdentifier();
+
+        $products = $this->fetchTable('Products')
+            ->find()
+            ->where(['Products.id IN' => $this->fetchTable('Purchases')->find()->select(['product_id'])->where(['Purchases.buyer_id' => $buyerId])]);   
+        $this->set(compact('purchases', 'products'));
+
+
         $purchase = $this->Purchases->get($id, contain: ['Products', 'Buyers']);
         $this->set(compact('purchase'));
     }
@@ -42,21 +52,41 @@ class PurchasesController extends AppController
      *
      * @return \Cake\Http\Response|null|void Redirects on successful add, renders view otherwise.
      */
-    public function add()
+    public function add($productId = null)
     {
-        $purchase = $this->Purchases->newEmptyEntity();
-        if ($this->request->is('post')) {
-            $purchase = $this->Purchases->patchEntity($purchase, $this->request->getData());
-            if ($this->Purchases->save($purchase)) {
-                $this->Flash->success(__('The purchase has been saved.'));
+        $this->request->allowMethod(['post']);
 
-                return $this->redirect(['action' => 'index']);
-            }
-            $this->Flash->error(__('The purchase could not be saved. Please, try again.'));
+        $identity = $this->request->getAttribute('identity');
+        $buyerId = $identity->getIdentifier();
+
+        // 🔎 Cargar producto
+        $product = $this->fetchTable('Products')
+            ->find()
+            ->where([
+                'Products.id' => $productId,
+            ])
+            ->firstOrFail();
+
+        // ❌ No puedes comprar tu propio producto
+        if ($product->user_id === $buyerId) {
+            $this->Flash->error(__('You cannot buy your own product.'));
+            return $this->redirect($this->referer());
         }
-        $products = $this->Purchases->Products->find('list', limit: 200)->all();
-        $buyers = $this->Purchases->Buyers->find('list', limit: 200)->all();
-        $this->set(compact('purchase', 'products', 'buyers'));
+
+        $purchase = $this->Purchases->newEmptyEntity();
+
+        $purchase = $this->Purchases->patchEntity($purchase, [
+            'product_id' => $productId,
+            'buyer_id' => $buyerId,
+        ]);
+
+        if ($this->Purchases->save($purchase)) {
+            $this->Flash->success(__('Purchase completed successfully.'));
+            return $this->redirect(['controller' => 'Pages', 'action' => 'display']);
+        }
+
+        $this->Flash->error(__('The purchase could not be completed.'));
+        return $this->redirect($this->referer());
     }
 
     /**

@@ -17,8 +17,14 @@ class ProductsController extends AppController
      */
     public function index()
     {
+        $userId = $this->request->getAttribute('identity')->getIdentifier();
+
         $query = $this->Products->find()
-            ->contain(['Users']);
+            ->where([
+                'Products.user_id' => $userId,
+            ])
+            ->orderDesc('Products.created');
+
         $products = $this->paginate($query);
 
         $this->set(compact('products'));
@@ -144,27 +150,27 @@ class ProductsController extends AppController
      * @return \Cake\Http\Response|null Redirects to index.
      * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
      */
-public function delete($id = null)
-{
-    $this->request->allowMethod(['post', 'delete']);
+    public function delete($id = null)
+    {
+        $this->request->allowMethod(['post', 'delete']);
 
-    $userId = $this->request->getAttribute('identity')->getIdentifier();
+        $userId = $this->request->getAttribute('identity')->getIdentifier();
 
-    // 🔒 Solo si el producto es del usuario
-    $product = $this->Products->find()
-        ->where([
-            'Products.id' => $id,
-            'Products.user_id' => $userId,
-        ])
-        ->firstOrFail();
+        // 🔒 Solo si el producto es del usuario
+        $product = $this->Products->find()
+            ->where([
+                'Products.id' => $id,
+                'Products.user_id' => $userId,
+            ])
+            ->firstOrFail();
 
-    if ($this->Products->delete($product)) {
-        $this->Flash->success(__('The product has been deleted.'));
-    } else {
-        $this->Flash->error(__('The product could not be deleted. Please, try again.'));
+        if ($this->Products->delete($product)) {
+            $this->Flash->success(__('The product has been deleted.'));
+        } else {
+            $this->Flash->error(__('The product could not be deleted. Please, try again.'));
+        }
+
+        return $this->redirect(['action' => 'index']);
     }
-
-    return $this->redirect(['action' => 'index']);
-}
 
 }

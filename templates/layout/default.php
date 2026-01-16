@@ -28,10 +28,13 @@ $cakeDescription = 'CakePHP: the rapid development php framework';
     </title>
     <?= $this->Html->meta('icon') ?>
 
-    <?= $this->Html->css(['normalize.min', 'milligram.min', 'fonts', 'cake','shop']) ?>
+    <?= $this->Html->css(['normalize.min', 'milligram.min', 'fonts', 'cake', 'shop']) ?>
     <!--añadir bootstrap-->
-    <?= $this->Html->css('https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css', ['integrity' => 'sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn
-9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z', 'crossorigin' => 'anonymous']) ?>
+    <?= $this->Html->css('https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css', [
+        'integrity' => 'sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn
+9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z',
+        'crossorigin' => 'anonymous'
+    ]) ?>
 
 
     <?= $this->fetch('meta') ?>
@@ -46,12 +49,22 @@ $cakeDescription = 'CakePHP: the rapid development php framework';
         </div>
         <div class="top-nav-links">
             <!-- Si estoy logeado email y enlace a logout, sino nada -->
-            <?php if ($this->request->getAttribute('identity')): ?>
+            <?php if ($identity = $this->request->getAttribute('identity')): ?>
                 <span><?= $this->request->getAttribute('identity')->username ?></span>
                 <?= $this->Html->link(
                     'Logout',
                     ['controller' => 'Users', 'action' => 'logout'],
                     ['class' => 'button button-outline']
+                ) ?>
+            <?php else: ?>
+                <?= $this->Html->link(
+                    'Login',
+                    ['controller' => 'Users', 'action' => 'login'],
+                    [
+                        'class' => 'button
+    button-outline'
+                    ]
+
                 ) ?>
             <?php endif; ?>
 
